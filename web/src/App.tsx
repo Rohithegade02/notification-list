@@ -1,10 +1,12 @@
-import React from 'react'
+import { Toaster } from "@/components/atoms/sonner"
+import { DashboardContainer } from "@/pages/Dashboard/DashboardContainer"
+import React from "react"
 
 function App() {
-
   return (
     <React.Fragment>
-      <h1>Notification List</h1>
+      <DashboardContainer />
+      <Toaster />
     </React.Fragment>
   )
 }
