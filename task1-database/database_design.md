@@ -18,7 +18,7 @@ We will use a single `notifications` collection to store notification requests. 
 | `content.subject` | String | No | Subject line (email/push title). |
 | `content.body` | String | Yes | Main message text. |
 | `content.templateId`| String | No | ID if using a template engine. |
-| `content.payload` | Object | No | Deep link data or extra JSON payload for push. |
+| `content.payload` | Object | No | Deep link data or extra JSON payload for push notification. |
 | `delivery` | [Object] | Yes | Array tracking status per channel. |
 | `priority` | String | No | `high`, `normal`, `low`. Default `normal`. |
 | `createdAt` | Date | Yes | Timestamp of creation. |
