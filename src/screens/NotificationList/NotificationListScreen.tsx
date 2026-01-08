@@ -50,7 +50,7 @@ export const NotificationListScreen: React.FC<NotificationListScreenProps> = ({
         if (loading) return null;
         return (
             <View style={styles.emptyContainer}>
-                <AppText style={{ textAlign: 'center', marginTop: 20 }} color={COLORS.gray999}>
+                <AppText style={styles.emptyText} color={COLORS.gray999}>
                     No notifications found.
                 </AppText>
             </View>
