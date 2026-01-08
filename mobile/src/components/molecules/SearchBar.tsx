@@ -1,7 +1,7 @@
 import { COLORS } from '@/src/constants/color';
+import { Ionicons } from '@expo/vector-icons';
 import React, { memo } from 'react';
 import { Dimensions, Pressable, StyleSheet, TextInput, View } from 'react-native';
-import { AppText } from '../atoms/AppText';
 
 interface SearchBarProps {
     value: string;
@@ -25,7 +25,7 @@ export const SearchBar: React.FC<SearchBarProps> = memo(({ value, onChangeText, 
             />
             {value.length > 0 && (
                 <Pressable onPress={onClear} style={styles.clearButton}>
-                    <AppText color={COLORS.darkGray} style={{ fontSize: 18 }}>×</AppText>
+                    <Ionicons name="close" size={24} color={COLORS.darkGray} />
                 </Pressable>
             )}
         </View>
@@ -51,7 +51,6 @@ const styles = StyleSheet.create({
         color: COLORS.black,
     },
     clearButton: {
-        marginLeft: 8,
         padding: 4,
     }
 });

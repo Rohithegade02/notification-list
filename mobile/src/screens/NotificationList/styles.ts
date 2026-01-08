@@ -7,6 +7,7 @@ export const styles = StyleSheet.create({
         backgroundColor: COLORS.white,
     },
     footer: {
+
         paddingVertical: 20,
         height: 60,
         justifyContent: 'center',
@@ -36,5 +37,16 @@ export const styles = StyleSheet.create({
     emptyText: {
         textAlign: 'center',
         marginTop: 20,
+    },
+    header: {
+        paddingVertical: 20,
+        height: 60,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    headerText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: COLORS.black,
     },
 });

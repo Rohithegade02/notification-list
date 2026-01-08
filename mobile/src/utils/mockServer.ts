@@ -20,7 +20,7 @@ const BODIES = [
 
 // Generate 100 mock items deterministic-ish
 const MOCK_DATA: Notification[] = Array.from({ length: 100 }, (_, i) => ({
-    id: `notif-${i}`,
+    id: `id-${i}`,
     type: TYPES[i % TYPES.length],
     title: `${TITLES[i % TITLES.length]}`,
     body: `${BODIES[i % BODIES.length]} This is some extra text to simulate a truncated body that is longer.`,
@@ -40,8 +40,8 @@ export const fetchNotifications = async (
                 const lowerQuery = query.toLowerCase();
                 filtered = MOCK_DATA.filter(
                     item =>
-                        item.title.toLowerCase().includes(lowerQuery) ||
-                        item.body.toLowerCase().includes(lowerQuery)
+                        item.title.toLowerCase().indexOf(lowerQuery.toLowerCase()) === 0 ||
+                        item.body.toLowerCase().indexOf(lowerQuery.toLowerCase()) === 0
                 );
             }
 
