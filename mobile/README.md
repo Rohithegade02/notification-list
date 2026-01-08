@@ -1,50 +1,93 @@
-# Welcome to your Expo app 👋
+# Notification System (Mobile)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native application demonstrating a high-performance notification list with search, pagination, and detail views. Built with **Expo** and **TypeScript** using **Atomic Design** and **Container/Presenter** patterns.
 
-## Get started
+## Features
 
-1. Install dependencies
+### 1. Notifications List
+-   **Visual Indicators**: Color-coded badges for notification types (Transactional, Marketing, Alert, Info).
+-   **Details**: Displays title, truncated body, relative timestamp (e.g., "5m ago"), and read status styling.
+-   **Performance**: Optimized `FlatList` handling 100+ items smoothly.
 
-   ```bash
-   npm install
-   ```
+### 2. Search
+-   **Real-time Filter**: Search by title or body.
+-   **Debounce**: Input is debounced by **400ms** to prevent excessive processing/API calls.
 
-2. Start the app
+### 3. Pagination
+-   **Infinite Scroll**: Automatically loads more items (10 per batch) when reaching the end of the list.
+-   **Loading States**: distinct footer loader for pagination and main screen loader for initial fetch.
 
-   ```bash
-   npx expo start
-   ```
+### 4. Detail View
+-   **Modal**: Tapping a notification opens a lightweight modal overlay with the full message content.
 
-In the output, you'll find options to open the app in a
+### 5. Mock Data & Simulation
+-   **Generator**: Client-side generation of 100 deterministic mock notifications.
+-   **Network Simulation**: Artificial **300ms delay** on all data fetching to mimic real-world network interaction.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Technical Decisions
 
-## Get a fresh project
+### Architecture: Container / Presenter Pattern
+-   **Separation of Concerns**: Logic (state, hooks, handlers) is strictly separated from UI (JSX, styles).
+    -   `NotificationListContainer`: Handles `useNotifications`, `useDebounce`, and search logic.
+    -   `NotificationListScreen`: Pure presentation component receiving props.
+-   **Testability**: Makes it easier to unit test logic independent of React Native rendering.
 
-When you're ready, run:
+### Component Structure: Atomic Design
+-   **Atoms**: Base primitives like `AppText`, `Badge`.
+-   **Molecules**: Composite parts like `NotificationCard`, `SearchBar`.
+-   **Screens**: assembled pages.
+
+### State Management: Custom Hooks
+-   **`useNotifications`**: Encapsulates the complexity of pagination, searching, buffering, and caching.
+-   **`useDebounce`**: Generic hook for delaying value updates.
+
+---
+
+## Optimization Techniques
+
+1.  **List Virtualization**:
+    -   configured `FlatList` with `maxToRenderPerBatch`, `initialNumToRender`, and `updateCellsBatchingPeriod` to balance memory usage and scroll speed.
+    -   Enabled `removeClippedSubviews` to unmount off-screen components on Android.
+
+2.  **Memoization**:
+    -   **`React.memo`**: Applied to `NotificationCard` and List Screens to prevent re-renders when parent state changes (e.g., typing in search bar shouldn't re-render all list items).
+    -   **`useCallback`**: All event handlers passed to children are memoized to preserve formatting.
+
+3.  **Caching**:
+    -   Implemented a simple in-memory cache in `useNotifications` to store results of previous searches or pages, reducing redundant "network" calls.
+
+---
+
+## Setup & Running Locally
+
+### Prerequisites
+-   Node.js & npm/bun
+-   Expo Go app on your physical device OR iOS Simulator / Android Emulator
+
+### Installation
+
+1.  Navigate to the mobile directory:
+    ```bash
+    cd mobile
+    ```
+
+2.  Install dependencies:
+    ```bash
+    bun install
+    # or
+    npm install
+    ```
+
+### Running the App
+
+Start the Metro Bundler:
 
 ```bash
-npm run reset-project
+bun start --ios     # For iOS Simulator
+# or
+bun start --android # For Android Emulator
+# or
+bun start           # To read QR code for physical device
 ```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
