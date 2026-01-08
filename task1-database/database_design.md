@@ -94,7 +94,7 @@ This compound index covers both the equality match on user and the sort operatio
 
 **Command:**
 ```javascript
-db.notifications.createIndex({ "userId": 1, "createdAt": -1 });
+db.notifications.createIndex({ "userId": 1, "createdAt": -1 ,  { expireAfterSeconds: 60 * 60 * 24 * 90 }});
 ```
 
 ### Index 2: Delivery Status for Retries
@@ -112,7 +112,8 @@ db.notifications.createIndex(
   {
     partialFilterExpression: {
       "delivery.status": { $in: ["pending", "failed"] }
-    }
+    },
+    expireAfterSeconds: 60 * 60 * 24 * 90
   }
 );
 
@@ -130,6 +131,8 @@ Useful for admin dashboards or analytics (e.g., "Show all marketing messages sen
 
 **Command:**
 ```javascript
-db.notifications.createIndex({ "type": 1, "createdAt": -1 });
+db.notifications.createIndex({ "type": 1, "createdAt": -1 ,  
+{ expireAfterSeconds: 60 * 60 * 24 * 90 }
+});
 ```
 
