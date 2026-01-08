@@ -10,6 +10,9 @@ import {
 import { Button } from "@/components/atoms/button"
 import { NotificationBadge } from "@/components/atoms/NotificationBadge"
 import { Notification } from "@/types/notification"
+import { formatTime } from "@/utils/formatTime"
+
+
 
 interface NotificationTableProps {
     items: Notification[]
@@ -38,7 +41,7 @@ export const NotificationTable = memo(({ items, onResend }: NotificationTablePro
                             <TableCell>{item.title}</TableCell>
                             <TableCell className="max-w-[300px] truncate">{item.body}</TableCell>
                             <TableCell className="text-muted-foreground text-xs">
-                                {new Date(item.timestamp).toLocaleDateString()}
+                                {formatTime(item.timestamp)}
                             </TableCell>
                             <TableCell className="text-right">
                                 <Button variant="ghost" size="sm" onClick={() => onResend(item.id)}>
