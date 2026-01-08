@@ -1,5 +1,5 @@
 import { BADGE_COLORS, COLORS } from '@/src/constants/color';
-import React from 'react';
+import React, { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { NotificationType } from '../../types/notification';
 import { AppText } from './AppText';
@@ -10,7 +10,7 @@ interface BadgeProps {
 
 
 
-export const Badge: React.FC<BadgeProps> = ({ type }) => {
+export const Badge: React.FC<BadgeProps> = memo(({ type }) => {
     return (
         <View style={[styles.container, { backgroundColor: BADGE_COLORS[type] }]}>
             <AppText variant="caption" color={COLORS.white} weight="bold" style={styles.text}>
@@ -18,7 +18,7 @@ export const Badge: React.FC<BadgeProps> = ({ type }) => {
             </AppText>
         </View>
     );
-};
+});
 
 const styles = StyleSheet.create({
     container: {

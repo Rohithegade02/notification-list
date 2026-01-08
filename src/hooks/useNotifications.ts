@@ -42,6 +42,7 @@ export const useNotifications = (searchQuery: string) => {
         };
     }, [searchQuery]);
 
+    // Load more notifications
     const loadMore = useCallback(async () => {
         if (loading || !hasMore || refreshing) return;
 
@@ -63,6 +64,7 @@ export const useNotifications = (searchQuery: string) => {
         }
     }, [page, hasMore, loading, refreshing, searchQuery]);
 
+    // Refresh notifications
     const refresh = useCallback(async () => {
         setRefreshing(true);
         try {

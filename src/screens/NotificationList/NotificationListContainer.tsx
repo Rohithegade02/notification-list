@@ -1,14 +1,15 @@
-import React, { useCallback, useState } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useNotifications } from '../../hooks/useNotifications';
 import { Notification } from '../../types/notification';
 import { NotificationListScreen } from './NotificationListScreen';
 
-export const NotificationListContainer: React.FC = () => {
+export const NotificationListContainer: React.FC = memo(() => {
     const [query, setQuery] = useState('');
-    const debouncedQuery = useDebounce(query, 400);
     const [selectedItem, setSelectedItem] = useState<Notification | null>(null);
 
+    //  hooks 
+    const debouncedQuery = useDebounce(query, 400);
     const { items, loading, loadMore, refresh, refreshing } = useNotifications(debouncedQuery);
 
     const handleSearch = useCallback((text: string) => {
@@ -21,7 +22,6 @@ export const NotificationListContainer: React.FC = () => {
 
     const handleItemPress = useCallback((item: Notification) => {
         setSelectedItem(item);
-        // Mark as read logic could go here
     }, []);
 
     const handleCloseDetail = useCallback(() => {
@@ -43,4 +43,4 @@ export const NotificationListContainer: React.FC = () => {
             onCloseDetail={handleCloseDetail}
         />
     );
-};
+});

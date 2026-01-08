@@ -1,6 +1,6 @@
 import { COLORS } from '@/src/constants/color';
 import { getRelativeTime } from '@/src/utils';
-import React, { useCallback } from 'react';
+import React, { memo, useCallback } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Notification } from '../../types/notification';
 import { AppText } from '../atoms/AppText';
@@ -13,10 +13,12 @@ interface NotificationCardProps {
     onPress: (item: Notification) => void;
 }
 
-export const NotificationCard: React.FC<NotificationCardProps> = ({ item, onPress }) => {
+export const NotificationCard: React.FC<NotificationCardProps> = memo(({ item, onPress }) => {
+
     const handlePress = useCallback(() => {
         onPress(item);
     }, [item]);
+
     return (
         <Pressable
             style={[styles.container, !item.isRead && styles.unread]}
@@ -36,7 +38,7 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({ item, onPres
             </AppText>
         </Pressable>
     );
-};
+});
 
 const styles = StyleSheet.create({
     container: {

@@ -1,6 +1,6 @@
 import { AppText } from '@/src/components/atoms/AppText';
 import { Notification } from '@/src/types/notification';
-import React from 'react';
+import React, { memo } from 'react';
 import { Modal, TouchableWithoutFeedback, View } from 'react-native';
 import { styles } from './styles';
 
@@ -10,7 +10,7 @@ interface NotificationModalProps {
     onCloseDetail: () => void;
 }
 
-const NotificationModal: React.FC<NotificationModalProps> = ({
+const NotificationModal: React.FC<NotificationModalProps> = memo(({
     visible,
     selectedItem,
     onCloseDetail,
@@ -47,6 +47,6 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
             </TouchableWithoutFeedback>
         </Modal>
     )
-}
+})
 
 export default NotificationModal

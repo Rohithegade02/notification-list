@@ -1,5 +1,5 @@
 import { COLORS } from '@/src/constants/color';
-import React, { useCallback } from 'react';
+import React, { memo, useCallback } from 'react';
 import { ActivityIndicator, FlatList, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '../../components/atoms/AppText';
@@ -23,7 +23,7 @@ interface NotificationListScreenProps {
     onCloseDetail: () => void;
 }
 
-export const NotificationListScreen: React.FC<NotificationListScreenProps> = ({
+export const NotificationListScreen: React.FC<NotificationListScreenProps> = memo(({
     items,
     loading,
     searchQuery,
@@ -90,6 +90,6 @@ export const NotificationListScreen: React.FC<NotificationListScreenProps> = ({
             />
         </View>
     );
-};
+});
 
 

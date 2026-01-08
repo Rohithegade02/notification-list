@@ -1,6 +1,6 @@
 import { COLORS } from '@/src/constants/color';
 import React, { memo } from 'react';
-import { Dimensions, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { AppText } from '../atoms/AppText';
 
 interface SearchBarProps {
@@ -24,9 +24,9 @@ export const SearchBar: React.FC<SearchBarProps> = memo(({ value, onChangeText, 
                 returnKeyType="search"
             />
             {value.length > 0 && (
-                <TouchableOpacity onPress={onClear} style={styles.clearButton} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                <Pressable onPress={onClear} style={styles.clearButton}>
                     <AppText color={COLORS.darkGray} style={{ fontSize: 18 }}>×</AppText>
-                </TouchableOpacity>
+                </Pressable>
             )}
         </View>
     );
