@@ -11,7 +11,7 @@ We will use a single `notifications` collection to store notification requests. 
 | Field | Type | Required | Description |
 | :--- | :--- | :--- | :--- |
 | `_id` | ObjectId | Yes | Unique identifier. |
-| `userId` | ObjectId | Yes | Reference to the receiving user. |
+| `userId` | ObjectId | Yes | Reference to the receiving user.(Pointing to users collection _id) |
 | `type` | String | Yes | Message category: `transactional`, `marketing`, `alert`.Enum validated. |
 | `validChannels` | [String] | Yes | List of channels intended for this notification (e.g., `["email", "push"]`). |
 | `content` | Object | Yes | core content. |
