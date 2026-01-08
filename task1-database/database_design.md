@@ -91,6 +91,11 @@ This is the most frequent query for the mobile app ("Show me my notifications").
 -   `createdAt`: Sorts by most recent first.
 This compound index covers both the equality match on user and the sort operation, preventing in-memory sorts.
 
+**Command:**
+```javascript
+db.notifications.createIndex({ "userId": 1, "createdAt": -1 });
+```
+
 ### Index 2: Delivery Status for Retries
 **Definition**: `{ "delivery.status": 1, "delivery.channel": 1, "delivery.lastAttempt": 1 }`
 **Reasoning**:
@@ -100,7 +105,17 @@ Background workers need to efficiently poll for failed or pending messages to pr
 -   `delivery.lastAttempt`: Used to implement exponential backoff (e.g., "find failed emails where last attempt was > 10 mins ago").
 *Note: MongoDB multikey indexes on arrays work well here as we want to find documents containing *any* delivery status matching the criteria.*
 
+**Command:**
+```javascript
+db.notifications.createIndex({ "delivery.status": 1, "delivery.channel": 1, "delivery.lastAttempt": 1 });
+```
+
 ### Index 3: Notification Type (Optional/Secondary)
 **Definition**: `{ "type": 1, "createdAt": -1 }`
 **Reasoning**:
 Useful for admin dashboards or analytics (e.g., "Show all marketing messages sent today"). It also helps if we want to prioritize `transactional` over `marketing` messages in the worker queues.
+
+**Command:**
+```javascript
+db.notifications.createIndex({ "type": 1, "createdAt": -1 });
+```
