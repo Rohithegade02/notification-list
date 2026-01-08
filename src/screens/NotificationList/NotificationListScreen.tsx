@@ -23,6 +23,7 @@ interface NotificationListScreenProps {
     onCloseDetail: () => void;
 }
 
+// Notification List Presentational Component
 export const NotificationListScreen: React.FC<NotificationListScreenProps> = memo(({
     items,
     loading,

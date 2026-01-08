@@ -11,7 +11,6 @@ interface NotificationModalProps {
 }
 
 const NotificationModal: React.FC<NotificationModalProps> = memo(({
-    visible,
     selectedItem,
     onCloseDetail,
 }) => {
