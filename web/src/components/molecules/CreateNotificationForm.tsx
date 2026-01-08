@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { memo, useState } from "react"
 import { Button } from "@/components/atoms/button"
 import {
     Dialog,
@@ -13,7 +13,7 @@ import { Input } from "@/components/atoms/input"
 import { Label } from "@/components/atoms/label"
 import { Textarea } from "@/components/atoms/textarea"
 
-export function CreateNotificationForm({ onCreate }: { onCreate: (data: { title: string; body: string; type: string }) => void }) {
+export const CreateNotificationForm = memo(({ onCreate }: { onCreate: (data: { title: string; body: string; type: string }) => void }) => {
     const [open, setOpen] = useState(false)
     const [title, setTitle] = useState("")
     const [body, setBody] = useState("")
@@ -33,14 +33,14 @@ export function CreateNotificationForm({ onCreate }: { onCreate: (data: { title:
             <DialogTrigger asChild>
                 <Button>Create Notification</Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[450px]">
                 <DialogHeader>
                     <DialogTitle>New Notification</DialogTitle>
                     <DialogDescription>
                         Send a new notification to all users.
                     </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+                <form onSubmit={handleSubmit} className="grid gap-4 py-8">
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="title" className="text-right">
                             Title
@@ -90,4 +90,4 @@ export function CreateNotificationForm({ onCreate }: { onCreate: (data: { title:
             </DialogContent>
         </Dialog>
     )
-}
+})

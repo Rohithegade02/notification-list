@@ -1,8 +1,9 @@
 import { useNotifications } from "@/hooks/useNotifications";
 import { toast } from "sonner";
 import { DashboardScreen } from "./DashboardScreen";
+import { memo } from "react";
 
-export function DashboardContainer() {
+export const DashboardContainer = memo(() => {
     const { items, loading, addNotification, resendNotification } = useNotifications();
 
     const handleCreate = async (data: { title: string; body: string; type: string }) => {
@@ -27,4 +28,4 @@ export function DashboardContainer() {
             onResend={handleResend}
         />
     );
-}
+});

@@ -1,3 +1,4 @@
+import { memo } from "react"
 import {
     Table,
     TableBody,
@@ -15,7 +16,7 @@ interface NotificationTableProps {
     onResend: (id: string) => void
 }
 
-export function NotificationTable({ items, onResend }: NotificationTableProps) {
+export const NotificationTable = memo(({ items, onResend }: NotificationTableProps) => {
     return (
         <div className="rounded-md border">
             <Table>
@@ -50,4 +51,4 @@ export function NotificationTable({ items, onResend }: NotificationTableProps) {
             </Table>
         </div>
     )
-}
+})

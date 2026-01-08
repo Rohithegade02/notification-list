@@ -1,6 +1,7 @@
 import { CreateNotificationForm } from "@/components/molecules/CreateNotificationForm";
 import { NotificationTable } from "@/components/molecules/NotificationTable";
 import { Notification } from "@/types/notification";
+import { memo } from "react";
 
 interface DashboardScreenProps {
     items: Notification[];
@@ -9,7 +10,7 @@ interface DashboardScreenProps {
     onResend: (id: string) => void;
 }
 
-export function DashboardScreen({ items, loading, onCreate, onResend }: DashboardScreenProps) {
+export const DashboardScreen = memo(({ items, loading, onCreate, onResend }: DashboardScreenProps) => {
     return (
         <div className="container mx-auto py-10">
             <div className="flex justify-between items-center mb-6">
@@ -24,4 +25,4 @@ export function DashboardScreen({ items, loading, onCreate, onResend }: Dashboar
             )}
         </div>
     )
-}
+})
