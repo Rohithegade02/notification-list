@@ -29,6 +29,7 @@ export const useNotifications = () => {
 
     const resendNotification = async (id: string) => {
         // Mock resend
+        console.log(id);
         return new Promise<void>(resolve => setTimeout(resolve, 500));
     }
 
