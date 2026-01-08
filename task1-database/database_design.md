@@ -110,7 +110,7 @@ Background workers need to efficiently poll for failed or pending messages to pr
 db.notifications.createIndex({ "delivery.status": 1, "delivery.channel": 1, "delivery.lastAttempt": 1 });
 ```
 
-### Index 3: Notification Type (Optional/Secondary)
+### Index 3: Notification Type
 **Definition**: `{ "type": 1, "createdAt": -1 }`
 **Reasoning**:
 Useful for admin dashboards or analytics (e.g., "Show all marketing messages sent today"). It also helps if we want to prioritize `transactional` over `marketing` messages in the worker queues.
