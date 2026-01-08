@@ -14,7 +14,7 @@ export const DashboardScreen = memo(({ items, loading, onCreate, onResend }: Das
     return (
         <div className="container mx-auto py-10">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Notifications Panel</h1>
                 <CreateNotificationForm onCreate={onCreate} />
             </div>
 
