@@ -32,7 +32,6 @@ A React Native application demonstrating a high-performance notification list wi
 -   **Separation of Concerns**: Logic (state, hooks, handlers) is strictly separated from UI (JSX, styles).
     -   `NotificationListContainer`: Handles `useNotifications`, `useDebounce`, and search logic.
     -   `NotificationListScreen`: Pure presentation component receiving props.
--   **Testability**: Makes it easier to unit test logic independent of React Native rendering.
 
 ### Component Structure: Atomic Design
 -   **Atoms**: Base primitives like `AppText`, `Badge`.
