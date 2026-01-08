@@ -81,10 +81,11 @@ We will use a single `notifications` collection to store notification requests. 
 We need to ensure high performance for:
 1.  **User Feeds**: Retrieving a user's notification history (especially in-app).
 2.  **Retry Worker**: Finding notifications that failed or are pending.
-3.  **Analytics/Filtering**: Querying by type.
+4.  **Notification Type**: Querying by type.
 
 ### Index 1: User History
 **Definition**: `{ "userId": 1, "createdAt": -1 }`
+**Type**: Compound Indexing
 **Reasoning**:
 This is the most frequent query for the mobile app ("Show me my notifications").
 -   `userId`: Filters by the specific user.
@@ -102,13 +103,25 @@ db.notifications.createIndex({ "userId": 1, "createdAt": -1 });
 Background workers need to efficiently poll for failed or pending messages to process them.
 -   `delivery.status`: Allows finding all `failed` or `pending` items.
 -   `delivery.channel`: Allows workers to be channel-specific (e.g., an "Email Worker" claiming email tasks).
--   `delivery.lastAttempt`: Used to implement exponential backoff (e.g., "find failed emails where last attempt was > 10 mins ago").
-*Note: MongoDB multikey indexes on arrays work well here as we want to find documents containing *any* delivery status matching the criteria.*
+-   `delivery.lastAttempt`: Prevents workers from processing the same message multiple times.
 
 **Command:**
 ```javascript
-db.notifications.createIndex({ "delivery.status": 1, "delivery.channel": 1, "delivery.lastAttempt": 1 });
+db.notifications.createIndex(
+  { "delivery.status": 1, "delivery.channel": 1, "delivery.lastAttempt": 1 },
+  {
+    partialFilterExpression: {
+      "delivery.status": { $in: ["pending", "failed"] }
+    }
+  }
+);
+
 ```
+
+**Benefits of the Partial Index:**
+-   **Reduces index size**: Only indexes documents that require processing.
+-   **Speeds up workers**: Minimizes the search space for polling queries.
+-   **Avoids scanning irrelevant documents**: Excludes terminal states like `delivered` or `read`.
 
 ### Index 3: Notification Type
 **Definition**: `{ "type": 1, "createdAt": -1 }`
@@ -119,3 +132,4 @@ Useful for admin dashboards or analytics (e.g., "Show all marketing messages sen
 ```javascript
 db.notifications.createIndex({ "type": 1, "createdAt": -1 });
 ```
+
