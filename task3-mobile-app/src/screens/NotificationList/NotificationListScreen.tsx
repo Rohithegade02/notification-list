@@ -78,7 +78,7 @@ export const NotificationListScreen: React.FC<NotificationListScreenProps> = mem
                 removeClippedSubviews
                 maxToRenderPerBatch={10}
                 updateCellsBatchingPeriod={30}
-                initialNumToRender={10}
+                initialNumToRender={20}
                 refreshing={refreshing}
                 onRefresh={onRefresh}
                 contentContainerStyle={{ flexGrow: 1 }}
