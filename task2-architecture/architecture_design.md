@@ -16,14 +16,21 @@ graph TD
         API -->|Persist| DB[("MongoDB")]
         API -->|Publish| MQ["Message Queue"]
         
+        MQ -->|Topic: in-app| W_InApp["In-App Workers"]
         MQ -->|Topic: email| W_Email["Email Workers"]
         MQ -->|Topic: push| W_Push["Push Workers"]
-        MQ -->|Topic: in-app| W_InApp["In-App Workers"]
     end
     
     subgraph WorkersLayer
-        W_Email -->|Send| P_Email["Email Provider"]
-        W_Push -->|Send| P_Push["Push Provider"]
+        W_Email -->|Push| Q_Email_RL["Email Rate Limit Queue"]
+        W_Push -->|Push| Q_Push_RL["Push Rate Limit Queue"]
+        
+        Q_Email_RL -->|Fetch (Fixed Rate)| S_Email["Email Sender"]
+        Q_Push_RL -->|Fetch (Fixed Rate)| S_Push["Push Sender"]
+        
+        S_Email -->|Send| P_Email["Email Provider"]
+        S_Push -->|Send| P_Push["Push Provider"]
+        
         W_InApp -->|Update DB| DB
         W_InApp -->|Publish| RT
     end
@@ -66,11 +73,17 @@ graph TD
 -   **Auto-scaling Workers**: We can autoscale the number of Worker instances based on queue lag (e.g., if queue > 1000, add 5 workers).
 -   **Stateless Services**: The API and Workers are stateless, allowing infinite horizontal scaling behind a Load Balancer.
 
+### 5. "Prevent Crashing Providers & Adhere to Rate Limits"
+**Solution: Rate Limiting Queues (Token Bucket)**
+-   **Problem**: Workers might process 1000 items/sec, but SendGrid only allows 100/sec.
+-   **Second Queue Layer**: After the main worker formats the message, it pushes it to a `Provider Queue`.
+-   **Controlled Consumption**: A separate "Sender" service consumes from this queue at a fixed rate (e.g., creating a "Leaky Bucket" effect). This ensures we never exceed the provider's API limits, protecting both our system and our account standing.
+
 ## 3. Data Flow Summary
 1.  **Ingestion**: API accepts request -> Save to DB -> Push to Queue.
 2.  **Processing**: Workers pull from Queue.
-    -   **Push**: Format -> Send to FCM.
-    -   **Email**: Format -> Send to SendGrid.
+    -   **Push**: Format -> Push to `Push Rate Limit Queue` -> Sender sends to FCM.
+    -   **Email**: Format -> Push to `Email Rate Limit Queue` -> Sender sends to SendGrid.
     -   **In-App**: Update DB -> Publish to Real-Time Service.
 3.  **Delivery**:
     -   **Mobile**: Receive FCM Push.
