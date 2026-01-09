@@ -5,7 +5,7 @@ import { StyleSheet, Text, TextProps } from 'react-native';
 
 
 interface AppTextProps extends TextProps {
-    variant?: 'title' | 'body' | 'caption';
+    variant?: 'title' | 'body' | 'caption'
     color?: string;
     weight?: 'normal' | 'bold' | '500';
 }
