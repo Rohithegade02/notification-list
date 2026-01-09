@@ -9,19 +9,16 @@ Architect a backend for a notification system serving React Native and React Web
 graph TD
     Client["Client Services"] -->|POST /send| LB["Load Balancer"]
     WebClient["Web Client"] <-->|WebSocket| LB
-    
-    subgraph API_Cluster
-        API1["API Server 1"]
-        API2["API Server 2"]
-        API3["API Server 3"]
+
+    subgraph API_Layer ["API Layer"]
+        direction TB
+        LB --> API1["API Server 1"]
+        LB --> API2["API Server 2"]
+        LB --> API3["API Server 3"]
     end
 
-    LB -->|Round Robin| API1
-    LB -->|Round Robin| API2
-    LB -->|Round Robin| API3
-
-    
-    subgraph CoreSystem
+    subgraph Core_System ["Core System"]
+        direction TB
         API1 & API2 & API3 -->|Persist| DB[("MongoDB")]
         API1 & API2 & API3 -->|Publish| MQ["Message Queue"]
         
@@ -30,37 +27,34 @@ graph TD
         MQ -->|Topic: push| W_Push["Push Workers"]
     end
     
-    subgraph WorkersLayer
-        Q_Email_RL["Email Rate Limit Queue"]
-        Q_Push_RL["Push Rate Limit Queue"]
-        S_Email["Email Sender"]
-        S_Push["Push Sender"]
-
-        W_Email -->|Push| Q_Email_RL
-        W_Push -->|Push| Q_Push_RL
+    subgraph Processing_Layer ["Processing Layer"]
+        direction TB
+        W_InApp -->|Update| DB
+        W_InApp -->|Publish| RT["Real-Time Service"]
         
-        Q_Email_RL -->|Fetch| S_Email
-        Q_Push_RL -->|Fetch| S_Push
+        W_Email -->|Push| Q_Email_RL["Email Rate Limit Queue"]
+        W_Push -->|Push| Q_Push_RL["Push Rate Limit Queue"]
         
+        Q_Email_RL -->|Fetch| S_Email["Email Sender"]
+        Q_Push_RL -->|Fetch| S_Push["Push Sender"]
+    end
+    
+    subgraph External_Services ["External Services"]
         S_Email -->|Send| P_Email["Email Provider"]
         S_Push -->|Send| P_Push["Push Provider"]
         
-        W_InApp -->|Update DB| DB
-        W_InApp -->|Update DB| DB
-        W_InApp -->|Publish| RT["Real-Time Service"]
-    end
-    
-    subgraph FeedbackLoop
         P_Email -.->|Webhook| P_Webhook["Webhook Handler"]
         P_Push -.->|Webhook| P_Webhook
         P_Webhook -->|Update| DB
     end
 
-    User(("User Device"))
-    P_Push -->|Deliver| User
-    RT -->|Deliver| WebClient
-    User -->|Fetch| LB
-    WebClient -->|Fetch| LB
+    subgraph End_Users ["End Users"]
+        P_Push -->|Deliver| User(("User Device"))
+        RT -->|Deliver| WebClient
+        
+        User -->|Fetch| LB
+        WebClient -->|Fetch| LB
+    end
 ```
 
 ## 2. Addressing Constraints & Requirements
