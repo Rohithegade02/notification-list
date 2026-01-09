@@ -22,7 +22,6 @@ graph TD
 
     
     subgraph CoreSystem
-    subgraph CoreSystem
         API1 & API2 & API3 -->|Persist| DB[("MongoDB")]
         API1 & API2 & API3 -->|Publish| MQ["Message Queue"]
         
@@ -57,8 +56,6 @@ graph TD
         P_Webhook -->|Update| DB
     end
 
-    User(("User Device"))
-    P_Push -->|Deliver| User
     User(("User Device"))
     P_Push -->|Deliver| User
     RT -->|Deliver| WebClient
