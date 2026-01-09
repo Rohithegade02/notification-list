@@ -8,10 +8,12 @@ Architect a backend for a notification system serving React Native and React Web
 ## 1. Architecture Diagram
 
 ```mermaid
-graph TD
+graph LR
+    %% Entry
     Client["Client Services"] -->|POST /send| LB["Load Balancer"]
     WebClient["Web Client"] <-->|WebSocket| LB
 
+    %% API Layer
     subgraph API_Layer ["API Layer"]
         direction TB
         LB --> API1["API Server 1"]
@@ -19,52 +21,62 @@ graph TD
         LB --> API3["API Server 3"]
     end
 
+    %% Core System
     subgraph Core_System ["Core System"]
         direction TB
-        API1 & API2 & API3 -->|Persist| DB[("MongoDB")]
-        API1 & API2 & API3 -->|Publish| MQ["Message Queue"]
+        API1 --> DB[("MongoDB")]
+        API2 --> DB
+        API3 --> DB
+
+        API1 --> MQ["Message Queue"]
+        API2 --> MQ
+        API3 --> MQ
+
         MQ --> Router["Delivery Router"]
     end
 
+    %% Processing Layer
     subgraph Processing_Layer ["Processing Layer"]
         direction TB
         Router --> Redis["Redis (Presence Cache)"]
 
-        Router -->|online| W_InApp["In-App / Push Workers"]
-        Router -->|offline| Q_P0["Email P0 (Transactional)"]
-        Router --> Q_P1["Email P1 (Alerts)"]
-        Router --> Q_P2["Email P2 (Marketing)"]
+        Router --> W_InApp["In-App / Push Workers"]
+
+        Router --> Q_P0["Email Queue P0 (Transactional)"]
+        Router --> Q_P1["Email Queue P1 (Alerts)"]
+        Router --> Q_P2["Email Queue P2 (Marketing)"]
 
         Q_P0 --> W_Email["Email Workers"]
         Q_P1 --> W_Email
         Q_P2 --> W_Email
 
-        W_InApp -->|Update| DB
-        W_InApp -->|Publish| RT["Real-Time Service"]
-        W_InApp -->|Send| P_Push["Push Provider"]
+        W_InApp --> RT["Real-Time Service"]
+        W_InApp --> P_Push["Push Provider"]
 
-        W_Email -->|Push| Q_Email_RL["Email Rate Limit Queue"]
-        Q_Email_RL -->|Fetch| S_Email["Email Sender"]
-        S_Email -->|Send| P_Email["Email Provider (SendGrid)"]
-
-        S_Email -.->|Fail| R_Email["Retry Queue"]
-        R_Email -.->|Max Retries| DLQ_Email["Email DLQ"]
+        W_Email --> Q_Email_RL["Email Rate Limit Queue"]
+        Q_Email_RL --> S_Email["Email Sender"]
+        S_Email --> P_Email["Email Provider (SendGrid)"]
     end
 
+    %% External Services
     subgraph External_Services ["External Services"]
         direction TB
-        P_Email -.->|Webhook| P_Webhook["Webhook Handler"]
-        P_Push -.->|Webhook| P_Webhook
-        P_Webhook -->|Update| DB
+        P_Email -.-> P_Webhook["Webhook Handler"]
+        P_Push -.-> P_Webhook
+        P_Webhook --> DB
     end
 
+    %% End Users
     subgraph End_Users ["End Users"]
         direction TB
-        P_Push -->|Deliver| User(("User Device"))
-        RT -->|Deliver| WebClient
-        User -->|Fetch| LB
-        WebClient -->|Fetch| LB
+        P_Push --> User(("User Device"))
+        RT --> WebClient
+
+        User --> LB
+        WebClient --> LB
     end
+
+```
 
 ## 2. Addressing Constraints & Requirements
 
