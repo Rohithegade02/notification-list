@@ -19,6 +19,7 @@ export const NotificationCard: React.FC<NotificationCardProps> = memo(({ item, o
         onPress(item);
     }, [item]);
 
+
     return (
         <Pressable
             style={[styles.container, !item.isRead && styles.unread]}

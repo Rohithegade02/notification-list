@@ -25,7 +25,7 @@ const MOCK_DATA: Notification[] = Array.from({ length: 100 }, (_, i) => ({
     title: `${TITLES[i % TITLES.length]}`,
     body: `${BODIES[i % BODIES.length]} This is some extra text to simulate a truncated body that is longer.`,
     timestamp: new Date(Date.now() - i * 3600000).toISOString(), // older items further down
-    isRead: i > 20, // first 20 unread
+    isRead: false,
 }));
 
 export const fetchNotifications = async (
