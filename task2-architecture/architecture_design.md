@@ -22,11 +22,16 @@ graph TD
     end
     
     subgraph WorkersLayer
-        W_Email -->|Push| Q_Email_RL["Email Rate Limit Queue"]
-        W_Push -->|Push| Q_Push_RL["Push Rate Limit Queue"]
+        Q_Email_RL["Email Rate Limit Queue"]
+        Q_Push_RL["Push Rate Limit Queue"]
+        S_Email["Email Sender"]
+        S_Push["Push Sender"]
+
+        W_Email -->|Push| Q_Email_RL
+        W_Push -->|Push| Q_Push_RL
         
-        Q_Email_RL -->|Fetch (Fixed Rate)| S_Email["Email Sender"]
-        Q_Push_RL -->|Fetch (Fixed Rate)| S_Push["Push Sender"]
+        Q_Email_RL -->|Fetch| S_Email
+        Q_Push_RL -->|Fetch| S_Push
         
         S_Email -->|Send| P_Email["Email Provider"]
         S_Push -->|Send| P_Push["Push Provider"]
