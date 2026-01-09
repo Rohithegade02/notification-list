@@ -3,6 +3,8 @@
 ## Problem Statement
 Architect a backend for a notification system serving React Native and React Web clients. It must handle high write throughput, decouple slow external providers (Email/Push), support real-time web updates, and manage offline mobile users.
 
+---
+
 ## 1. Architecture Diagram
 
 ```mermaid
@@ -21,71 +23,117 @@ graph TD
         direction TB
         API1 & API2 & API3 -->|Persist| DB[("MongoDB")]
         API1 & API2 & API3 -->|Publish| MQ["Message Queue"]
-        
-        MQ -->|Topic: in-app| W_InApp["In-App Workers"]
-        MQ -->|Topic: email| W_Email["Email Workers"]
-        MQ -->|Topic: push| W_Push["Push Workers"]
+        MQ --> Router["Delivery Router"]
     end
-    
+
     subgraph Processing_Layer ["Processing Layer"]
         direction TB
+        Router --> Redis["Redis (Presence Cache)"]
+
+        Router -->|online| W_InApp["In-App / Push Workers"]
+        Router -->|offline| Q_P0["Email P0 (Transactional)"]
+        Router --> Q_P1["Email P1 (Alerts)"]
+        Router --> Q_P2["Email P2 (Marketing)"]
+
+        Q_P0 --> W_Email["Email Workers"]
+        Q_P1 --> W_Email
+        Q_P2 --> W_Email
+
         W_InApp -->|Update| DB
         W_InApp -->|Publish| RT["Real-Time Service"]
-        
+        W_InApp -->|Send| P_Push["Push Provider"]
+
         W_Email -->|Push| Q_Email_RL["Email Rate Limit Queue"]
-        W_Push -->|Push| Q_Push_RL["Push Rate Limit Queue"]
-        
         Q_Email_RL -->|Fetch| S_Email["Email Sender"]
-        Q_Push_RL -->|Fetch| S_Push["Push Sender"]
+        S_Email -->|Send| P_Email["Email Provider (SendGrid)"]
+
+        S_Email -.->|Fail| R_Email["Retry Queue"]
+        R_Email -.->|Max Retries| DLQ_Email["Email DLQ"]
     end
-    
+
     subgraph External_Services ["External Services"]
-        S_Email -->|Send| P_Email["Email Provider"]
-        S_Push -->|Send| P_Push["Push Provider"]
-        
+        direction TB
         P_Email -.->|Webhook| P_Webhook["Webhook Handler"]
         P_Push -.->|Webhook| P_Webhook
         P_Webhook -->|Update| DB
     end
 
     subgraph End_Users ["End Users"]
+        direction TB
         P_Push -->|Deliver| User(("User Device"))
         RT -->|Deliver| WebClient
-        
         User -->|Fetch| LB
         WebClient -->|Fetch| LB
     end
-```
 
 ## 2. Addressing Constraints & Requirements
 
-### 1. "Sending notifications is slow and unreliable"
+### 1. "Sending notifications is slow and unreliable"  
 **Solution: Async Queue & Worker Pattern**
--   **Non-blocking API**: The **Load Balancer** distributes requests to one of the **API Servers**. The server receives the request, persists it as `pending` in MongoDB, and acknowledges the client immediately (`202 Accepted`).
--   **Decoupling**: The actual sending happens asynchronously via the **Message Queue**.
--   **Worker Isolation**: Separate worker pools for Email and Push ensure that if SendGrid provider is slow, it doesn't backlog the Push notifications.
 
-### 2. "Real-time updates are required for the Web client"
-**Solution: accessible Real-Time Service (WebSocket/SSE)**
--   **Dedicated Service**: A lightweight NodeJS/Go service maintains per-user WebSocket connections.
--   **Event-Driven**: When the `In-App Worker` processes a notification, it publishes a redis-sub event. The Real-Time Service subscribes to this node and immediately pushes the payload to the connected Web Client.
--   **Fallback**: If the user is not connected (offline), the notification remains in MongoDB. The next time the user loads the page, they fetch unread items from the API.
+- The API persists the notification and publishes it to a Message Queue.
+- Workers asynchronously process delivery, so the API never blocks.
+- Retry queues handle transient failures; DLQ captures permanent failures.
 
-### 3. "Mobile apps rely on Push when closed"
-**Solution: Dual-Channel Delivery**
--   **Push Channel**: The `Push Worker` specifically targets mobile device tokens (FCM/APNS). This channel operates independently of the real-time channel.
--   **Offline Handling**: Push notifications are natively designed for offline/background delivery by the OS. The server sends the payload to FCM, and FCM delivers it when the device is reachable.
+This ensures low latency, fault tolerance, and isolation from provider outages.
 
-### 4. "The system must scale to handle traffic spikes"
+---
+
+### 2. "Real-time updates are required for the Web client"  
+**Solution: Dedicated Real-Time Service**
+
+- A WebSocket-based Real-Time Service maintains live connections.
+- When the In-App worker processes a notification, it publishes it to the RT service.
+- If the user is offline, the notification remains stored and is fetched later.
+
+---
+
+### 3. "Mobile apps rely on Push when closed"  
+**Solution: Push Provider Integration**
+
+- In-App / Push workers send push notifications via FCM/APNS.
+- The OS handles background delivery when the device becomes reachable.
+
+---
+
+### 4. "Gracefully handle offline users"  
+**Solution: Presence-Aware Routing via Redis**
+
+- Redis tracks user presence (`online` / `offline`) using TTL-based keys.
+- Router chooses the delivery channel:
+  - **Online** → In-App / Push  
+  - **Offline** → Email  
+
+This avoids unnecessary emails and improves user experience.
+
+---
+
+### 5. "The system must scale to handle traffic spikes"  
 **Solution: Horizontal Scaling & Buffering**
--   **mq Buffering**: The Message Queue acts as a shock absorber. A spike of 10k req/sec is safely queued, even if workers can only process 5k/sec. The queue grows, but the system doesn't crash.
--   **Auto-scaling Workers**: We can autoscale the number of Worker instances based on queue lag (e.g., if queue > 1000, add 5 workers).
--   **Stateless Services**: The **API Servers** and Workers are stateless, allowing infinite horizontal scaling behind the **Load Balancer**.
 
-### 5. "Prevent Crashing Providers & Adhere to Rate Limits"
-**Solution: Rate Limiting Queues (Token Bucket)**
--   **Problem**: Workers might process 1000 items/sec, but SendGrid only allows 100/sec.
--   **Second Queue Layer**: After the main worker formats the message, it pushes it to a `Provider Queue`.
--   **Controlled Consumption**: A separate "Sender" service consumes from this queue at a fixed rate (e.g., creating a "Leaky Bucket" effect). This ensures we never exceed the provider's API limits, protecting both our system and our account standing.
+- The Message Queue buffers traffic bursts.
+- Stateless APIs and workers scale horizontally.
+- Auto-scaling can be driven by queue depth.
 
+---
 
+### 6. "Prevent provider overload and respect rate limits"  
+**Solution: Rate-Limited Sender Queues**
+
+- Workers push messages into a provider-specific rate-limit queue.
+- Sender services drain these queues at safe rates, protecting API quotas.
+
+---
+
+### 7. Handle Different Business Priorities  
+**Solution: Priority Queues**
+
+The system classifies notifications based on business importance and processes them using priority queues to ensure critical messages are delivered first.
+
+| Type           | Priority | Queue Level |
+|----------------|----------|-------------|
+| Transactional  | P0       | Highest     |
+| Alerts         | P1       | Medium      |
+| Marketing      | P2       | Lowest      |
+
+Email workers always consume higher-priority queues before lower-priority ones, ensuring that important notifications are never delayed by non-critical traffic.
