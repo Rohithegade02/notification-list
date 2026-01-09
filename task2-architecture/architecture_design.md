@@ -7,14 +7,24 @@ Architect a backend for a notification system serving React Native and React Web
 
 ```mermaid
 graph TD
-    Client["Client Services"] -->|POST /send| GW["API Gateway"]
-    WebClient["Web Client"] <-->|WebSocket| RT["Real-Time Service"]
+    Client["Client Services"] -->|POST /send| LB["Load Balancer"]
+    WebClient["Web Client"] <-->|WebSocket| LB
     
-    GW -->|Auth| API["Notification API"]
+    subgraph API_Cluster
+        API1["API Server 1"]
+        API2["API Server 2"]
+        API3["API Server 3"]
+    end
+
+    LB -->|Round Robin| API1
+    LB -->|Round Robin| API2
+    LB -->|Round Robin| API3
+
     
     subgraph CoreSystem
-        API -->|Persist| DB[("MongoDB")]
-        API -->|Publish| MQ["Message Queue"]
+    subgraph CoreSystem
+        API1 & API2 & API3 -->|Persist| DB[("MongoDB")]
+        API1 & API2 & API3 -->|Publish| MQ["Message Queue"]
         
         MQ -->|Topic: in-app| W_InApp["In-App Workers"]
         MQ -->|Topic: email| W_Email["Email Workers"]
@@ -37,7 +47,8 @@ graph TD
         S_Push -->|Send| P_Push["Push Provider"]
         
         W_InApp -->|Update DB| DB
-        W_InApp -->|Publish| RT
+        W_InApp -->|Update DB| DB
+        W_InApp -->|Publish| RT["Real-Time Service"]
     end
     
     subgraph FeedbackLoop
@@ -48,16 +59,18 @@ graph TD
 
     User(("User Device"))
     P_Push -->|Deliver| User
+    User(("User Device"))
+    P_Push -->|Deliver| User
     RT -->|Deliver| WebClient
-    User -->|Fetch| API
-    WebClient -->|Fetch| API
+    User -->|Fetch| LB
+    WebClient -->|Fetch| LB
 ```
 
 ## 2. Addressing Constraints & Requirements
 
 ### 1. "Sending notifications is slow and unreliable"
 **Solution: Async Queue & Worker Pattern**
--   **Non-blocking API**: The Main API receives the request, validates it, persists it as `pending` in MongoDB, and acknowledges the client immediately (`202 Accepted`).
+-   **Non-blocking API**: The **Load Balancer** distributes requests to one of the **API Servers**. The server receives the request, persists it as `pending` in MongoDB, and acknowledges the client immediately (`202 Accepted`).
 -   **Decoupling**: The actual sending happens asynchronously via the **Message Queue**.
 -   **Worker Isolation**: Separate worker pools for Email and Push ensure that if SendGrid provider is slow, it doesn't backlog the Push notifications.
 
@@ -76,7 +89,7 @@ graph TD
 **Solution: Horizontal Scaling & Buffering**
 -   **mq Buffering**: The Message Queue acts as a shock absorber. A spike of 10k req/sec is safely queued, even if workers can only process 5k/sec. The queue grows, but the system doesn't crash.
 -   **Auto-scaling Workers**: We can autoscale the number of Worker instances based on queue lag (e.g., if queue > 1000, add 5 workers).
--   **Stateless Services**: The API and Workers are stateless, allowing infinite horizontal scaling behind a Load Balancer.
+-   **Stateless Services**: The **API Servers** and Workers are stateless, allowing infinite horizontal scaling behind the **Load Balancer**.
 
 ### 5. "Prevent Crashing Providers & Adhere to Rate Limits"
 **Solution: Rate Limiting Queues (Token Bucket)**
@@ -85,7 +98,8 @@ graph TD
 -   **Controlled Consumption**: A separate "Sender" service consumes from this queue at a fixed rate (e.g., creating a "Leaky Bucket" effect). This ensures we never exceed the provider's API limits, protecting both our system and our account standing.
 
 ## 3. Data Flow Summary
-1.  **Ingestion**: API accepts request -> Save to DB -> Push to Queue.
+## 3. Data Flow Summary
+1.  **Ingestion**: LB accepts request -> API Server -> Save to DB -> Push to Queue.
 2.  **Processing**: Workers pull from Queue.
     -   **Push**: Format -> Push to `Push Rate Limit Queue` -> Sender sends to FCM.
     -   **Email**: Format -> Push to `Email Rate Limit Queue` -> Sender sends to SendGrid.
