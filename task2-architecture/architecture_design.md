@@ -88,13 +88,4 @@ graph TD
 -   **Second Queue Layer**: After the main worker formats the message, it pushes it to a `Provider Queue`.
 -   **Controlled Consumption**: A separate "Sender" service consumes from this queue at a fixed rate (e.g., creating a "Leaky Bucket" effect). This ensures we never exceed the provider's API limits, protecting both our system and our account standing.
 
-## 3. Data Flow Summary
-## 3. Data Flow Summary
-1.  **Ingestion**: LB accepts request -> API Server -> Save to DB -> Push to Queue.
-2.  **Processing**: Workers pull from Queue.
-    -   **Push**: Format -> Push to `Push Rate Limit Queue` -> Sender sends to FCM.
-    -   **Email**: Format -> Push to `Email Rate Limit Queue` -> Sender sends to SendGrid.
-    -   **In-App**: Update DB -> Publish to Real-Time Service.
-3.  **Delivery**:
-    -   **Mobile**: Receive FCM Push.
-    -   **Web**: Receive WebSocket event (if online) or View Notification Bell (if offline).
+
