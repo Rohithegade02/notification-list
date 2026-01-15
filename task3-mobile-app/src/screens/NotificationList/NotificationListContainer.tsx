@@ -5,7 +5,7 @@ import { Notification } from '../../types/notification';
 import { NotificationListScreen } from './NotificationListScreen';
 
 export const NotificationListContainer: React.FC = memo(() => {
-    const [query, setQuery] = useState('');
+    const [query, setQuery] = useState<string>('');
     const [selectedItem, setSelectedItem] = useState<Notification | null>(null);
     const [data, setData] = useState<Notification[]>([]);
 

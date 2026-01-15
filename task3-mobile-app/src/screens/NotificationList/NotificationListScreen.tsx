@@ -58,6 +58,10 @@ export const NotificationListScreen: React.FC<NotificationListScreenProps> = mem
         );
     }, [loading]);
 
+    const renderItem = useCallback(({ item }: { item: Notification }) => {
+        return <NotificationCard item={item} onPress={onItemPress} />;
+    }, [onItemPress]);
+
     return (
         <View style={[styles.container, { paddingTop: top }]}>
             <SearchBar
@@ -67,9 +71,7 @@ export const NotificationListScreen: React.FC<NotificationListScreenProps> = mem
             />
             <FlatList
                 data={items}
-                renderItem={({ item }) => (
-                    <NotificationCard item={item} onPress={onItemPress} />
-                )}
+                renderItem={renderItem}
                 keyExtractor={(item) => item.id}
                 onEndReached={onLoadMore}
                 onEndReachedThreshold={0.5}
