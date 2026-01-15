@@ -40,10 +40,11 @@ export const fetchNotifications = async (
                 const lowerQuery = query.toLowerCase();
                 filtered = MOCK_DATA.filter(
                     item =>
-                        item.title.toLowerCase().indexOf(lowerQuery.toLowerCase()) === 0 ||
-                        item.body.toLowerCase().indexOf(lowerQuery.toLowerCase()) === 0
+                        item.title.toLowerCase().includes(lowerQuery.toLowerCase()) ||
+                        item.body.toLowerCase().includes(lowerQuery.toLowerCase())
                 );
             }
+
 
             const start = (page - 1) * pageSize;
             const end = start + pageSize;

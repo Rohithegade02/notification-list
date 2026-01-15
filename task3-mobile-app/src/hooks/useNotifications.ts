@@ -11,13 +11,9 @@ export const useNotifications = (searchQuery: string) => {
     // cache to store the data
     const [cache, setCache] = useState<Map<string, any>>(() => new Map());
 
-    // Prevent race conditions
-    const currentQuery = useRef(searchQuery);
 
     // Reset and fetch first page when query changes
     useEffect(() => {
-        currentQuery.current = searchQuery;
-        let isActive = true;
 
         const fetchFirstPage = async () => {
             setLoading(true);
@@ -32,26 +28,20 @@ export const useNotifications = (searchQuery: string) => {
             }
             try {
                 const { items: newItems, hasMore: moreAvailable } = await fetchNotifications(1, 10, searchQuery);
-                if (isActive && currentQuery.current === searchQuery) {
-                    setItems(newItems);
-                    setHasMore(moreAvailable);
-                    setPage(2); // Next page is 2
-                    setCache(prev => new Map(prev.set(searchQuery, { items: newItems, hasMore: moreAvailable })));
-                }
+                setItems(newItems);
+                setHasMore(moreAvailable);
+                setPage(2); // Next page is 2
+                setCache(prev => new Map(prev.set(searchQuery, { items: newItems, hasMore: moreAvailable })));
             } catch (error) {
                 console.error('Failed to fetch notifications', error);
             } finally {
-                if (isActive && currentQuery.current === searchQuery) {
-                    setLoading(false);
-                }
+                setLoading(false);
             }
         };
 
         fetchFirstPage();
 
-        return () => {
-            isActive = false;
-        };
+
     }, [searchQuery]);
 
     // Load more notifications
